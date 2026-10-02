@@ -1,0 +1,5256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <meta name="theme-color" content="#070a09" />
+
+  <title>Alight Motion Pro — cypajo</title>
+  <link rel="icon" type="image/jpeg" href="/favicon.jpeg" />
+
+  <style>
+    /* =========================================================
+       RHMT / ALIGHT MOTION PRO
+       Single-file experimental motion interface
+       ========================================================= */
+
+    :root {
+      --bg: #070908;
+      --bg-soft: #0a0d0c;
+      --surface: #0d100f;
+      --surface-2: #111512;
+
+      --text: #f0f2ed;
+      --text-soft: #c9cdc8;
+      --muted: #7c837e;
+      --muted-2: #505751;
+
+      --line: rgba(255,255,255,.105);
+      --line-soft: rgba(255,255,255,.055);
+
+      --accent: #47e7ad;
+      --accent-soft: #8df4cf;
+      --accent-dark: #0a2f24;
+
+      --amber: #dabd75;
+      --danger: #ef7d83;
+
+      --serif:
+        "Times New Roman",
+        "Nimbus Roman No9 L",
+        Georgia,
+        serif;
+
+      --sans:
+        Inter,
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
+
+      --mono:
+        "SFMono-Regular",
+        Consolas,
+        "Liberation Mono",
+        Menlo,
+        monospace;
+
+      --page: 1220px;
+      --pad: clamp(18px, 4vw, 48px);
+    }
+
+    /* =========================================================
+       RESET
+       ========================================================= */
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--bg);
+      color-scheme: dark;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      overflow-x: hidden;
+      background:
+        radial-gradient(
+          circle at 78% -10%,
+          rgba(46, 170, 125, .09),
+          transparent 31%
+        ),
+        radial-gradient(
+          circle at 5% 46%,
+          rgba(39, 98, 77, .05),
+          transparent 29%
+        ),
+        var(--bg);
+
+      color: var(--text);
+      font-family: var(--sans);
+
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    a:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    ::selection {
+      background: var(--accent);
+      color: #02130c;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #060807;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #29302c;
+    }
+
+    .mono {
+      font-family: var(--mono);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Existing JS terminal classes */
+
+    .text-zinc-600 { color: #515853; }
+    .text-zinc-300 { color: #abb0ac; }
+    .text-sky-400 { color: #85aeb1; }
+    .text-emerald-400 { color: var(--accent); }
+    .text-amber-400 { color: var(--amber); }
+    .text-rose-400 { color: var(--danger); }
+    .font-bold { font-weight: 700; }
+    .font-semibold { font-weight: 600; }
+
+    /* =========================================================
+       GLOBAL BACKGROUND
+       ========================================================= */
+
+    .global-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -10;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .global-grid {
+      position: absolute;
+      inset: 0;
+
+      background-image:
+        linear-gradient(
+          rgba(255,255,255,.022) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255,255,255,.022) 1px,
+          transparent 1px
+        );
+
+      background-size: 72px 72px;
+
+      opacity: .38;
+
+      -webkit-mask-image:
+        linear-gradient(
+          to bottom,
+          rgba(0,0,0,.95),
+          rgba(0,0,0,.55) 46%,
+          transparent 90%
+        );
+
+      mask-image:
+        linear-gradient(
+          to bottom,
+          rgba(0,0,0,.95),
+          rgba(0,0,0,.55) 46%,
+          transparent 90%
+        );
+    }
+
+    .global-vignette {
+      position: absolute;
+      inset: 0;
+
+      background:
+        linear-gradient(
+          90deg,
+          rgba(0,0,0,.28),
+          transparent 22%,
+          transparent 75%,
+          rgba(0,0,0,.22)
+        );
+    }
+
+    .global-line {
+      position: absolute;
+      left: 6%;
+      top: 12%;
+      width: 1px;
+      height: 75%;
+
+      background:
+        linear-gradient(
+          transparent,
+          rgba(255,255,255,.085),
+          transparent
+        );
+    }
+
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      opacity: .055;
+      pointer-events: none;
+
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.82' numOctaves='4' stitchTiles='stitch' type='fractalNoise'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.9'/%3E%3C/svg%3E");
+
+      mix-blend-mode: soft-light;
+    }
+
+    /* =========================================================
+       PAGE
+       ========================================================= */
+
+    .page {
+      width: min(
+        var(--page),
+        calc(100% - (var(--pad) * 2))
+      );
+
+      margin-inline: auto;
+    }
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    .site-header {
+      min-height: 96px;
+
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-word {
+      font-weight: 900;
+      font-size: 19px;
+      letter-spacing: -.035em;
+      white-space: nowrap;
+    }
+
+    .brand-separator {
+      width: 1px;
+      height: 32px;
+      background: var(--line);
+    }
+
+    .brand-sub {
+      color: #727973;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      line-height: 1.7;
+      letter-spacing: .34em;
+    }
+
+    .header-center {
+      color: #505651;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .32em;
+    }
+
+    .header-status {
+      justify-self: end;
+
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .18em;
+    }
+
+    .status-version {
+      color: #8b918c;
+    }
+
+    .status-live {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      color: #b4bab5;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+
+      background: var(--accent);
+      border-radius: 50%;
+
+      box-shadow:
+        0 0 0 4px rgba(71,231,173,.07),
+        0 0 18px rgba(71,231,173,.35);
+    }
+
+    /* =========================================================
+       HERO
+       ========================================================= */
+
+    .hero {
+      position: relative;
+
+      min-height: 720px;
+
+      padding:
+        clamp(70px, 9vw, 120px)
+        0
+        clamp(70px, 8vw, 105px);
+
+      display: grid;
+      grid-template-columns:
+        minmax(0, .92fr)
+        minmax(310px, .65fr);
+
+      gap: clamp(38px, 7vw, 100px);
+
+      align-items: center;
+    }
+
+    .hero::after {
+      content: "";
+
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          var(--line),
+          var(--line),
+          transparent
+        );
+    }
+
+    /* Hero left */
+
+    .hero-index {
+      margin-bottom: 30px;
+
+      display: flex;
+      align-items: center;
+      gap: 18px;
+
+      color: #8b928c;
+
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .35em;
+    }
+
+    .hero-index strong {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .hero-index-line {
+      width: 46px;
+      height: 1px;
+      background: rgba(71,231,173,.35);
+    }
+
+    .hero-title {
+      margin: 0;
+
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size:
+        clamp(66px, 9.1vw, 139px);
+
+      line-height: .76;
+      letter-spacing: -.07em;
+    }
+
+    .hero-title span {
+      display: block;
+    }
+
+    .hero-title .pro {
+      padding-left: clamp(28px, 9vw, 130px);
+
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .hero-tags {
+      margin-top: 43px;
+
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+
+      color: #979d98;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .25em;
+    }
+
+    .hero-tags i {
+      color: #343a36;
+      font-style: normal;
+    }
+
+    .hero-description {
+      max-width: 590px;
+
+      margin: 34px 0 0;
+
+      color: #8a918b;
+
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .hero-action {
+      width: max-content;
+
+      margin-top: 32px;
+
+      display: flex;
+      align-items: center;
+      gap: 17px;
+
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .hero-action-circle {
+      width: 56px;
+      height: 56px;
+
+      display: grid;
+      place-items: center;
+
+      border: 1px solid rgba(71,231,173,.5);
+      border-radius: 50%;
+
+      color: var(--accent);
+
+      font-size: 18px;
+
+      transition:
+        background .3s ease,
+        color .3s ease,
+        transform .3s ease;
+    }
+
+    .hero-action:hover .hero-action-circle {
+      color: #04120c;
+      background: var(--accent);
+      transform: rotate(-30deg);
+    }
+
+    .hero-action-copy strong {
+      display: block;
+
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: .28em;
+    }
+
+    .hero-action-copy small {
+      display: block;
+
+      margin-top: 7px;
+
+      color: #4e554f;
+
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: .28em;
+    }
+
+    /* =========================================================
+       HERO MOTION STAGE
+       ========================================================= */
+
+    .motion-stage {
+      position: relative;
+
+      width: 100%;
+      min-height: 470px;
+
+      overflow: hidden;
+
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,.019),
+          transparent 45%
+        );
+    }
+
+    .motion-stage::before {
+      content: "";
+
+      position: absolute;
+      inset: 0;
+
+      background-image:
+        linear-gradient(
+          rgba(255,255,255,.023) 1px,
+          transparent 1px
+        ),
+        linear-gradient(
+          90deg,
+          rgba(255,255,255,.023) 1px,
+          transparent 1px
+        );
+
+      background-size: 38px 38px;
+      opacity: .7;
+
+      -webkit-mask-image:
+        radial-gradient(
+          circle at center,
+          black,
+          transparent 80%
+        );
+
+      mask-image:
+        radial-gradient(
+          circle at center,
+          black,
+          transparent 80%
+        );
+    }
+
+    #motion-canvas {
+      position: absolute;
+      inset: 0;
+
+      width: 100%;
+      height: 100%;
+    }
+
+    .stage-overlay {
+      position: absolute;
+      inset: 0;
+
+      pointer-events: none;
+    }
+
+    .stage-corner {
+      position: absolute;
+
+      color: #515752;
+
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: .22em;
+    }
+
+    .stage-corner.tl {
+      top: 18px;
+      left: 18px;
+    }
+
+    .stage-corner.tr {
+      top: 18px;
+      right: 18px;
+      text-align: right;
+    }
+
+    .stage-corner.bl {
+      bottom: 18px;
+      left: 18px;
+    }
+
+    .stage-corner.br {
+      right: 18px;
+      bottom: 18px;
+      text-align: right;
+    }
+
+    .stage-cross {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+
+      width: 18px;
+      height: 18px;
+
+      transform: translate(-50%, -50%);
+
+      opacity: .35;
+    }
+
+    .stage-cross::before,
+    .stage-cross::after {
+      content: "";
+
+      position: absolute;
+
+      background: white;
+    }
+
+    .stage-cross::before {
+      top: 50%;
+      left: 0;
+
+      width: 100%;
+      height: 1px;
+    }
+
+    .stage-cross::after {
+      top: 0;
+      left: 50%;
+
+      width: 1px;
+      height: 100%;
+    }
+
+    .stage-data {
+      position: absolute;
+      right: 18px;
+      bottom: 53px;
+
+      width: min(195px, 52%);
+
+      border-top: 1px solid var(--line);
+    }
+
+    .stage-data-row {
+      min-height: 34px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+
+      border-bottom: 1px solid var(--line-soft);
+
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: .14em;
+    }
+
+    .stage-data-row span:first-child {
+      color: #555c56;
+    }
+
+    .stage-data-row span:last-child {
+      color: #aeb4af;
+    }
+
+    .stage-data-row .green {
+      color: var(--accent);
+    }
+
+    /* =========================================================
+       SECTION COMMON
+       ========================================================= */
+
+    .section {
+      padding:
+        clamp(68px, 9vw, 112px)
+        0;
+
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-head {
+      margin-bottom: clamp(42px, 6vw, 68px);
+
+      display: grid;
+      grid-template-columns: 54px 1fr auto;
+      align-items: center;
+      gap: 17px;
+    }
+
+    .section-num {
+      color: var(--accent);
+
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .27em;
+    }
+
+    .section-line {
+      height: 1px;
+      background: var(--line);
+    }
+
+    .section-label {
+      color: #606761;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .3em;
+    }
+
+    /* =========================================================
+       FEATURES
+       ========================================================= */
+
+    .capabilities {
+      display: grid;
+      grid-template-columns:
+        minmax(260px, .65fr)
+        minmax(0, 1.35fr);
+
+      gap: clamp(42px, 8vw, 110px);
+    }
+
+    .cap-copy {
+      align-self: start;
+      position: sticky;
+      top: 30px;
+    }
+
+    .cap-copy h2 {
+      max-width: 410px;
+
+      margin: 0;
+
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(43px, 6vw, 76px);
+      line-height: .93;
+      letter-spacing: -.05em;
+    }
+
+    .cap-copy h2 em {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .cap-copy p {
+      max-width: 340px;
+
+      margin: 27px 0 0;
+
+      color: #737a74;
+
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    .cap-list {
+      border-top: 1px solid var(--line);
+    }
+
+    .cap-item {
+      position: relative;
+
+      min-height: 116px;
+
+      display: grid;
+      grid-template-columns:
+        46px
+        minmax(0, 1fr)
+        auto;
+
+      align-items: center;
+      gap: 18px;
+
+      border-bottom: 1px solid var(--line);
+
+      transition:
+        padding .3s ease,
+        background .3s ease;
+    }
+
+    .cap-item::before {
+      content: "";
+
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+
+      width: 2px;
+
+      background: var(--accent);
+
+      transform: scaleY(0);
+      transform-origin: center;
+
+      transition: transform .3s ease;
+    }
+
+    @media (hover:hover) {
+      .cap-item:hover {
+        padding-left: 17px;
+
+        background:
+          linear-gradient(
+            90deg,
+            rgba(71,231,173,.035),
+            transparent
+          );
+      }
+
+      .cap-item:hover::before {
+        transform: scaleY(1);
+      }
+    }
+
+    .cap-id {
+      color: #4b524c;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .18em;
+    }
+
+    .cap-main {
+      min-width: 0;
+    }
+
+    .cap-title {
+      margin: 0;
+
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: 28px;
+      letter-spacing: -.025em;
+    }
+
+    .cap-sub {
+      display: block;
+
+      margin-top: 7px;
+
+      color: #545b55;
+
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: .21em;
+    }
+
+    .cap-value {
+      color: var(--accent);
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .18em;
+
+      text-align: right;
+    }
+
+    /* =========================================================
+       INTERACTION / ACTIVATION
+       ========================================================= */
+
+    .activate-layout {
+      display: grid;
+      grid-template-columns:
+        minmax(0, 1.25fr)
+        minmax(300px, .75fr);
+
+      gap: 24px;
+      align-items: start;
+    }
+
+    .activate-card {
+      position: relative;
+
+      overflow: hidden;
+
+      border: 1px solid var(--line);
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(17,21,19,.96),
+          rgba(8,10,9,.98)
+        );
+
+      padding: clamp(27px, 5vw, 64px);
+    }
+
+    .activate-card::after {
+      content: "AM";
+
+      position: absolute;
+      z-index: 0;
+
+      top: 25px;
+      right: -22px;
+
+      color: rgba(255,255,255,.017);
+
+      font-size: clamp(120px, 17vw, 250px);
+      font-weight: 900;
+      letter-spacing: -.12em;
+      line-height: .8;
+
+      pointer-events: none;
+    }
+
+    .activate-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .activate-kicker {
+      color: #686f69;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .28em;
+    }
+
+    .activate-title {
+      max-width: 720px;
+
+      margin: 34px 0 20px;
+
+      font-family: var(--serif);
+      font-size: clamp(48px, 6.6vw, 84px);
+      font-weight: 400;
+      line-height: .91;
+      letter-spacing: -.06em;
+    }
+
+    .activate-title span {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .activate-desc {
+      max-width: 620px;
+
+      margin: 0;
+
+      color: #858c86;
+
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    /* =========================================================
+       STEP INDICATOR
+       ========================================================= */
+
+    .step-area {
+      margin: 45px 0 31px;
+    }
+
+    .step-top {
+      margin-bottom: 13px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .24em;
+    }
+
+    #step-label-num {
+      color: var(--accent);
+    }
+
+    #step-label-name {
+      color: #5b625c;
+      text-align: right;
+    }
+
+    .step-track {
+      height: 1px;
+      overflow: hidden;
+      background: #252b27;
+    }
+
+    #progress-bar-fill {
+      width: 50%;
+      height: 100%;
+
+      background: var(--accent);
+
+      box-shadow:
+        0 0 14px rgba(71,231,173,.32);
+
+      transition:
+        width .45s cubic-bezier(.2,.8,.2,1);
+    }
+
+    /* =========================================================
+       FORMS
+       ========================================================= */
+
+    .field-group + .field-group {
+      margin-top: 20px;
+    }
+
+    .field-label {
+      display: block;
+
+      margin-bottom: 12px;
+
+      color: #9ca29c;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .22em;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .field-input {
+      width: 100%;
+      min-height: 62px;
+
+      padding: 0 18px;
+
+      border: 1px solid #303631;
+      border-radius: 0;
+
+      outline: none;
+
+      color: var(--text);
+      background: #070908;
+
+      font-size: 16px;
+
+      transition:
+        border-color .22s ease,
+        box-shadow .22s ease,
+        background .22s ease;
+    }
+
+    .field-input::placeholder {
+      color: #4d544e;
+    }
+
+    .field-input:focus {
+      border-color: var(--accent);
+
+      background: #080c0a;
+
+      box-shadow:
+        inset 3px 0 0 var(--accent);
+    }
+
+    .field-input.link-input {
+      padding-right: 92px;
+
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .paste-btn {
+      position: absolute;
+
+      top: 10px;
+      right: 10px;
+
+      min-width: 72px;
+      height: 42px;
+
+      border: 1px solid var(--line);
+      background: #121613;
+      color: #bdc2bd;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .16em;
+
+      cursor: pointer;
+
+      transition:
+        background .2s ease,
+        color .2s ease;
+    }
+
+    .paste-btn:hover {
+      color: white;
+      background: #171c18;
+    }
+
+    /* =========================================================
+       BUTTONS
+       ========================================================= */
+
+    .primary-btn {
+      width: 100%;
+      min-height: 62px;
+
+      margin-top: 16px;
+      padding: 0 23px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+
+      border: 0;
+
+      background: var(--accent);
+      color: #03110b;
+
+      cursor: pointer;
+
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .23em;
+
+      transition:
+        background .2s ease,
+        transform .15s ease,
+        opacity .2s ease;
+    }
+
+    .primary-btn:hover {
+      background: var(--accent-soft);
+    }
+
+    .primary-btn:active {
+      transform: scale(.994);
+    }
+
+    .primary-btn:disabled {
+      cursor: progress;
+      opacity: .68;
+    }
+
+    .primary-arrow {
+      font-size: 21px;
+      font-weight: 300;
+      letter-spacing: 0;
+    }
+
+    .secondary-btn {
+      min-height: 58px;
+
+      padding: 0 20px;
+
+      border: 1px solid var(--line);
+
+      background: transparent;
+      color: #818881;
+
+      cursor: pointer;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .14em;
+
+      transition:
+        background .2s ease,
+        color .2s ease;
+    }
+
+    .secondary-btn:hover {
+      color: white;
+      background: rgba(255,255,255,.035);
+    }
+
+    .action-row {
+      margin-top: 16px;
+
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+    }
+
+    .action-row .primary-btn {
+      margin-top: 0;
+    }
+
+    /* Loader */
+
+    .spinner {
+      width: 17px;
+      height: 17px;
+
+      border: 2px solid rgba(0,0,0,.25);
+      border-top-color: rgba(0,0,0,.85);
+      border-radius: 50%;
+
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* =========================================================
+       STEP TWO NOTICE
+       ========================================================= */
+
+    .mail-notice {
+      margin-bottom: 28px;
+      padding: 20px 0;
+
+      display: grid;
+      grid-template-columns: 33px 1fr;
+      gap: 15px;
+
+      border-top: 1px solid rgba(218,189,117,.28);
+      border-bottom: 1px solid rgba(218,189,117,.28);
+    }
+
+    .mail-notice-icon {
+      color: var(--amber);
+
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .mail-notice strong {
+      display: block;
+
+      margin-bottom: 7px;
+
+      color: #d9c082;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .19em;
+    }
+
+    .mail-notice p {
+      margin: 0;
+
+      color: #8d8779;
+
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    /* =========================================================
+       SUCCESS
+       ========================================================= */
+
+    .success-block {
+      padding-top: 6px;
+    }
+
+    .success-symbol {
+      width: 54px;
+      height: 54px;
+
+      margin-bottom: 28px;
+
+      display: grid;
+      place-items: center;
+
+      border: 1px solid var(--accent);
+
+      color: var(--accent);
+
+      font-family: var(--mono);
+      font-size: 20px;
+    }
+
+    .success-title {
+      margin: 0;
+
+      font-family: var(--serif);
+      font-size: clamp(39px, 5vw, 62px);
+      font-weight: 400;
+      line-height: .98;
+      letter-spacing: -.05em;
+    }
+
+    .success-desc {
+      max-width: 620px;
+
+      margin: 18px 0 0;
+
+      color: #858b86;
+
+      font-size: 13px;
+      line-height: 1.75;
+    }
+
+    #success-email-display {
+      color: var(--accent);
+      word-break: break-word;
+    }
+
+    .certificate {
+      margin-top: 31px;
+      border-top: 1px solid var(--line);
+    }
+
+    .certificate-row {
+      min-height: 58px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+
+      border-bottom: 1px solid var(--line);
+    }
+
+    .certificate-row span:first-child {
+      color: #555c56;
+
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: .2em;
+    }
+
+    .certificate-row span:last-child {
+      color: #cdd1cd;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .12em;
+
+      text-align: right;
+    }
+
+    /* =========================================================
+       DESKTOP DIAGNOSTICS
+       ========================================================= */
+
+    .diagnostics-desktop {
+      display: grid;
+      gap: 18px;
+    }
+
+    .diag-panel {
+      overflow: hidden;
+
+      border: 1px solid var(--line);
+      background: #080a09;
+    }
+
+    .diag-header {
+      min-height: 58px;
+
+      padding: 0 17px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+
+      border-bottom: 1px solid var(--line);
+    }
+
+    .diag-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      min-width: 0;
+
+      font-family: var(--mono);
+    }
+
+    .diag-num {
+      color: var(--accent);
+
+      font-size: 7px;
+      letter-spacing: .18em;
+    }
+
+    .diag-name {
+      overflow: hidden;
+
+      color: #9da39e;
+
+      font-size: 8px;
+      letter-spacing: .16em;
+
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #response-http-badge {
+      flex: 0 0 auto;
+
+      color: var(--accent);
+
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: .13em;
+    }
+
+    .diag-code {
+      min-height: 185px;
+      max-height: 260px;
+
+      padding: 20px;
+
+      overflow: auto;
+
+      background: #060807;
+    }
+
+    #json-code-box,
+    #mobile-json-code-box {
+      margin: 0;
+
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+
+      color: #a9afaa;
+
+      font-family: var(--mono);
+      font-size: 9px;
+      line-height: 1.75;
+    }
+
+    .terminal-feed {
+      height: 235px;
+
+      padding: 20px;
+
+      overflow: auto;
+
+      color: #757c76;
+      background: #060807;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      line-height: 1.85;
+    }
+
+    .trash-btn {
+      width: 38px;
+      height: 38px;
+
+      display: grid;
+      place-items: center;
+
+      border: 0;
+
+      color: #646b65;
+      background: transparent;
+
+      cursor: pointer;
+    }
+
+    .trash-btn:hover {
+      color: white;
+    }
+
+    /* Syntax */
+
+    .cs-key { color: #d2d6d2; }
+    .cs-str { color: #61d8ab; }
+    .cs-bool { color: #d5bb77; }
+    .cs-num { color: #a1b6ad; }
+    .cs-punct { color: #58605a; }
+
+    /* =========================================================
+       MOBILE DIAGNOSTICS
+       ========================================================= */
+
+    .diagnostics-mobile {
+      display: none;
+    }
+
+    .mobile-diagnostics {
+      border: 1px solid var(--line);
+      background: #080a09;
+    }
+
+    .mobile-diagnostics summary {
+      min-height: 68px;
+
+      padding: 0 17px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+
+      list-style: none;
+      cursor: pointer;
+    }
+
+    .mobile-diagnostics summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .diag-mobile-main {
+      min-width: 0;
+    }
+
+    .diag-mobile-title {
+      color: #bbc0bb;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .18em;
+    }
+
+    .diag-mobile-sub {
+      margin-top: 6px;
+
+      color: #555c56;
+
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: .11em;
+    }
+
+    .diag-expand {
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 15px;
+    }
+
+    .mobile-diagnostics[open] .diag-expand {
+      transform: rotate(45deg);
+    }
+
+    .mobile-diagnostics-content {
+      border-top: 1px solid var(--line);
+    }
+
+    .mobile-diag-section {
+      padding: 17px;
+    }
+
+    .mobile-diag-section + .mobile-diag-section {
+      border-top: 1px solid var(--line);
+    }
+
+    .mobile-diag-label {
+      margin-bottom: 13px;
+
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+
+      color: #696f69;
+
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: .16em;
+    }
+
+    #mobile-terminal-feed {
+      max-height: 180px;
+      overflow: auto;
+
+      color: #757c76;
+
+      font-family: var(--mono);
+      font-size: 8px;
+      line-height: 1.8;
+    }
+
+    /* =========================================================
+       FOOTER
+       ========================================================= */
+
+    .footer {
+      min-height: 150px;
+
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .footer-title {
+      color: #bcc1bc;
+
+      font-family: var(--serif);
+      font-size: 22px;
+    }
+
+    .footer-sub {
+      margin-top: 8px;
+
+      color: #555c56;
+
+      font-family: var(--mono);
+      font-size: 7px;
+      letter-spacing: .22em;
+    }
+
+    .footer-right {
+      color: #565d57;
+
+      font-family: var(--mono);
+      font-size: 7px;
+      line-height: 2;
+      letter-spacing: .18em;
+
+      text-align: right;
+    }
+
+    .footer-socials {
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .social-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border: 1px solid var(--line);
+      background: #090c0a;
+      color: #9da39e;
+      text-decoration: none;
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .12em;
+      transition:
+        color .2s ease,
+        border-color .2s ease,
+        background .2s ease;
+    }
+
+    .social-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: #0d1411;
+    }
+
+    .social-icon {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+      fill: currentColor;
+    }
+
+    /* =========================================================
+       TOAST
+       ========================================================= */
+
+    #toast-pill {
+      position: fixed;
+      z-index: 2000;
+
+      left: 50%;
+      bottom:
+        max(
+          22px,
+          calc(env(safe-area-inset-bottom) + 14px)
+        );
+
+      transform: translate(-50%, 18px);
+
+      opacity: 0;
+      pointer-events: none;
+
+      transition:
+        opacity .22s ease,
+        transform .22s ease;
+    }
+
+    #toast-pill.opacity-100 {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    #toast-pill.opacity-0 {
+      opacity: 0;
+    }
+
+    .toast-inner {
+      min-width: min(280px, calc(100vw - 34px));
+
+      padding: 14px 17px;
+
+      display: flex;
+      align-items: center;
+      gap: 11px;
+
+      color: #07100c;
+      background: #eef2ed;
+
+      box-shadow:
+        0 18px 45px rgba(0,0,0,.38);
+
+      font-family: var(--mono);
+      font-size: 8px;
+      letter-spacing: .07em;
+    }
+
+    #toast-indicator {
+      width: 6px;
+      height: 6px;
+
+      flex: 0 0 auto;
+
+      border-radius: 50%;
+      background: #12b97c;
+    }
+
+    /* =========================================================
+       REVEAL
+       ========================================================= */
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+
+      transition:
+        opacity .72s ease,
+        transform .72s cubic-bezier(.2,.75,.2,1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* =========================================================
+       TABLET
+       ========================================================= */
+
+    @media (max-width: 920px) {
+      .site-header {
+        grid-template-columns: 1fr auto;
+      }
+
+      .header-center {
+        display: none;
+      }
+
+      .hero {
+        min-height: auto;
+
+        grid-template-columns: 1fr;
+        gap: 65px;
+      }
+
+      .hero-copy {
+        max-width: 720px;
+      }
+
+      .motion-stage {
+        min-height: 420px;
+      }
+
+      .capabilities {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+
+      .cap-copy {
+        position: static;
+      }
+
+      .activate-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .diagnostics-desktop {
+        display: none;
+      }
+
+      .diagnostics-mobile {
+        display: block;
+        margin-top: 18px;
+      }
+    }
+
+    /* =========================================================
+       MOBILE
+       ========================================================= */
+
+    @media (max-width: 620px) {
+      :root {
+        --pad: 17px;
+      }
+
+      .site-header {
+        min-height: 82px;
+      }
+
+      .brand {
+        gap: 12px;
+      }
+
+      .brand-word {
+        font-size: 17px;
+      }
+
+      .brand-separator {
+        height: 28px;
+      }
+
+      .brand-sub {
+        display: none;
+      }
+
+      .header-status {
+        gap: 12px;
+        font-size: 8px;
+      }
+
+      .hero {
+        padding-top: 58px;
+        padding-bottom: 64px;
+
+        gap: 50px;
+      }
+
+      .hero-index {
+        margin-bottom: 27px;
+      }
+
+      .hero-title {
+        font-size:
+          clamp(60px, 20vw, 88px);
+
+        line-height: .79;
+      }
+
+      .hero-title .pro {
+        padding-left: 13%;
+      }
+
+      .hero-tags {
+        margin-top: 34px;
+        line-height: 1.8;
+      }
+
+      .hero-description {
+        margin-top: 29px;
+
+        font-size: 13px;
+      }
+
+      .hero-action {
+        margin-top: 27px;
+      }
+
+      .hero-action-circle {
+        width: 52px;
+        height: 52px;
+      }
+
+      .motion-stage {
+        min-height: 330px;
+      }
+
+      .stage-corner {
+        font-size: 6px;
+      }
+
+      .stage-data {
+        width: 53%;
+      }
+
+      .stage-data-row {
+        min-height: 30px;
+        font-size: 6px;
+      }
+
+      .section {
+        padding: 65px 0;
+      }
+
+      .section-head {
+        margin-bottom: 42px;
+
+        grid-template-columns: 39px 1fr;
+      }
+
+      .section-label {
+        display: none;
+      }
+
+      .cap-copy h2 {
+        font-size: 48px;
+      }
+
+      .cap-copy p {
+        font-size: 12px;
+      }
+
+      .cap-item {
+        min-height: 93px;
+
+        grid-template-columns:
+          27px
+          minmax(0,1fr)
+          auto;
+
+        gap: 10px;
+      }
+
+      .cap-title {
+        font-size: 22px;
+      }
+
+      .cap-value {
+        max-width: 76px;
+        font-size: 7px;
+      }
+
+      .activate-card {
+        padding: 29px 20px;
+      }
+
+      .activate-title {
+        margin-top: 29px;
+
+        font-size: 48px;
+      }
+
+      .activate-desc {
+        font-size: 12px;
+      }
+
+      .step-area {
+        margin-top: 39px;
+      }
+
+      .action-row {
+        grid-template-columns: 1fr;
+      }
+
+      .certificate-row {
+        align-items: flex-start;
+        padding: 17px 0;
+      }
+
+      .certificate-row span:last-child {
+        max-width: 55%;
+      }
+
+      .footer {
+        padding: 37px 0;
+
+        grid-template-columns: 1fr;
+      }
+
+      .footer-right {
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .status-version {
+        display: none;
+      }
+
+      .hero-title {
+        font-size: 58px;
+      }
+
+      .motion-stage {
+        min-height: 300px;
+      }
+
+      .stage-data {
+        display: none;
+      }
+
+      .cap-title {
+        font-size: 20px;
+      }
+    }
+
+    /* =========================================================
+       REDUCED MOTION
+       ========================================================= */
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =======================================================
+       GLOBAL AMBIENCE
+       ======================================================= -->
+
+  <div class="global-bg" aria-hidden="true">
+    <div class="global-grid"></div>
+    <div class="global-vignette"></div>
+    <div class="global-line"></div>
+  </div>
+
+  <div class="grain" aria-hidden="true"></div>
+
+
+  <div class="page">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+
+    <header class="site-header">
+
+      <div class="brand">
+        <div class="brand-word">cypajo</div>
+
+        <div class="brand-separator"></div>
+
+        <div class="brand-sub">
+          TOOLS FOR<br />
+          CREATORS
+        </div>
+      </div>
+
+
+      <div class="header-center">
+        INDEPENDENT ACCESS INTERFACE
+      </div>
+
+
+      <div class="header-status">
+
+        <span class="status-version">
+          v1.0
+        </span>
+
+        <span class="status-live">
+          <span class="live-dot"></span>
+          ONLINE
+        </span>
+
+      </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         HERO
+         ===================================================== -->
+
+    <section class="hero">
+
+      <div class="hero-copy reveal">
+
+        <div class="hero-index">
+          <strong>01</strong>
+          <span class="hero-index-line"></span>
+          <span>ALIGHT MOTION</span>
+        </div>
+
+
+        <h1 class="hero-title">
+          <span>Alight</span>
+          <span>Motion</span>
+          <span class="pro">Pro.</span>
+        </h1>
+
+
+        <div class="hero-tags">
+          <span>FULL ACCESS</span>
+          <i>•</i>
+
+          <span>NO WATERMARK</span>
+          <i>•</i>
+
+          <span>1 YEAR</span>
+        </div>
+
+
+        <p class="hero-description">
+          Dapatkan akun premium secara gratis tanpa langganan
+          bulanan. Proses cepat, mudah, dan aman digunakan
+          langsung dari server dispatcher.
+        </p>
+
+
+        <a
+          href="#activation"
+          class="hero-action"
+        >
+          <span class="hero-action-circle">
+            →
+          </span>
+
+          <span class="hero-action-copy">
+            <strong>MULAI SEKARANG</strong>
+
+            <small>
+              AKTIVASI DALAM 2 LANGKAH
+            </small>
+          </span>
+        </a>
+
+      </div>
+
+
+      <!-- ===================================================
+           MOTION SCULPTURE
+           =================================================== -->
+
+      <div class="motion-stage reveal">
+
+        <canvas
+          id="motion-canvas"
+          aria-hidden="true"
+        ></canvas>
+
+
+        <div
+          class="stage-overlay"
+          aria-hidden="true"
+        >
+
+          <div class="stage-corner tl">
+            MOTION CORE<br />
+            CYPAJO / 001
+          </div>
+
+          <div class="stage-corner tr">
+            X 127.42<br />
+            Y 094.17
+          </div>
+
+          <div class="stage-corner bl">
+            VECTOR SYSTEM<br />
+            ACTIVE
+          </div>
+
+          <div class="stage-corner br">
+            FRAME 60<br />
+            PRO / 1.0
+          </div>
+
+
+          <div class="stage-cross"></div>
+
+
+          <div class="stage-data">
+
+            <div class="stage-data-row">
+              <span>ENGINE</span>
+              <span>CYPAJO</span>
+            </div>
+
+            <div class="stage-data-row">
+              <span>STATUS</span>
+              <span class="green">ACTIVE</span>
+            </div>
+
+            <div class="stage-data-row">
+              <span>OUTPUT</span>
+              <span>4K / 60</span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FEATURES
+         ===================================================== -->
+
+    <section class="section">
+
+      <div class="section-head">
+
+        <span class="section-num">
+          02
+        </span>
+
+        <span class="section-line"></span>
+
+        <span class="section-label">
+          CAPABILITIES
+        </span>
+
+      </div>
+
+
+      <div class="capabilities">
+
+        <div class="cap-copy reveal">
+
+          <h2>
+            Built for<br />
+            <em>motion.</em>
+          </h2>
+
+          <p>
+            Seluruh fitur utama tersedia dalam satu akses.
+            Tidak ada lapisan visual yang tidak perlu;
+            setiap elemen fokus pada fungsi dan informasi.
+          </p>
+
+        </div>
+
+
+        <div class="cap-list">
+
+          <article class="cap-item reveal">
+
+            <span class="cap-id">
+              01
+            </span>
+
+            <div class="cap-main">
+
+              <h3 class="cap-title">
+                No Watermark
+              </h3>
+
+              <span class="cap-sub">
+                CLEAN EXPORT
+              </span>
+
+            </div>
+
+            <span class="cap-value">
+              ENABLED
+            </span>
+
+          </article>
+
+
+          <article class="cap-item reveal">
+
+            <span class="cap-id">
+              02
+            </span>
+
+            <div class="cap-main">
+
+              <h3 class="cap-title">
+                Durasi 1 Tahun
+              </h3>
+
+              <span class="cap-sub">
+                FULL ACCESS
+              </span>
+
+            </div>
+
+            <span class="cap-value">
+              365 DAYS
+            </span>
+
+          </article>
+
+
+          <article class="cap-item reveal">
+
+            <span class="cap-id">
+              03
+            </span>
+
+            <div class="cap-main">
+
+              <h3 class="cap-title">
+                Support XML
+              </h3>
+
+              <span class="cap-sub">
+                PRESET / PROJECT
+              </span>
+
+            </div>
+
+            <span class="cap-value">
+              ACTIVE
+            </span>
+
+          </article>
+
+
+          <article class="cap-item reveal">
+
+            <span class="cap-id">
+              04
+            </span>
+
+            <div class="cap-main">
+
+              <h3 class="cap-title">
+                High Quality
+              </h3>
+
+              <span class="cap-sub">
+                PROFESSIONAL OUTPUT
+              </span>
+
+            </div>
+
+            <span class="cap-value">
+              4K / 60FPS
+            </span>
+
+          </article>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ACTIVATION
+         ===================================================== -->
+
+    <section
+      id="activation"
+      class="section"
+    >
+
+      <div class="section-head">
+
+        <span class="section-num">
+          03
+        </span>
+
+        <span class="section-line"></span>
+
+        <span class="section-label">
+          ACCOUNT ACTIVATION
+        </span>
+
+      </div>
+
+
+      <div class="activate-layout">
+
+        <!-- =================================================
+             PRIMARY FORM
+             ================================================= -->
+
+        <main class="activate-card reveal">
+
+          <div class="activate-content">
+
+            <div class="activate-kicker">
+              CYPAJO / PREMIUM GENERATOR / v1.0
+            </div>
+
+
+            <h2 class="activate-title">
+              Activate your<br />
+              <span>access.</span>
+            </h2>
+
+
+            <p class="activate-desc">
+              Masukkan email akun Alight Motion yang sudah
+              terdaftar, lalu verifikasi magic link dari email.
+            </p>
+
+
+            <!-- =============================================
+                 STEP STATUS
+                 ============================================= -->
+
+            <div class="step-area">
+
+              <div class="step-top">
+
+                <span id="step-label-num">
+                  STEP 1
+                </span>
+
+                <span id="step-label-name">
+                  EMAIL ADDRESS
+                </span>
+
+              </div>
+
+              <div class="step-track">
+                <div id="progress-bar-fill"></div>
+              </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 STEP 1
+                 ============================================= -->
+
+            <div id="step-1-block">
+
+              <div class="field-group">
+
+                <label
+                  for="user-email"
+                  class="field-label"
+                >
+                  EMAIL ADDRESS
+                </label>
+
+
+                <div class="input-wrap">
+
+                  <input
+                    id="user-email"
+                    class="field-input"
+                    type="email"
+                    inputmode="email"
+                    autocomplete="email"
+                    placeholder="name@gmail.com"
+                  />
+
+                </div>
+
+              </div>
+
+
+              <button
+                id="btn-send-link"
+                class="primary-btn"
+                type="button"
+              >
+
+                <span id="btn-send-text">
+                  KIRIM MAGIC LINK
+                </span>
+
+                <span
+                  id="btn-send-arrow"
+                  class="primary-arrow"
+                >
+                  →
+                </span>
+
+                <span
+                  id="btn-send-loader"
+                  class="spinner hidden"
+                  aria-hidden="true"
+                ></span>
+
+              </button>
+
+            </div>
+
+
+            <!-- =============================================
+                 STEP 2
+                 ============================================= -->
+
+            <div
+              id="step-2-block"
+              class="hidden"
+            >
+
+              <div class="mail-notice">
+
+                <div class="mail-notice-icon">
+                  !
+                </div>
+
+
+                <div>
+
+                  <strong>
+                    CEK EMAIL KAMU
+                  </strong>
+
+                  <p>
+                    Buka Gmail atau Spam, cari email dari
+                    Alight Motion, klik magic link, lalu salin
+                    seluruh URL dari browser.
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <div class="field-group">
+
+                <label
+                  for="magic-link-input"
+                  class="field-label"
+                >
+                  VERIFICATION LINK
+                </label>
+
+
+                <div class="input-wrap">
+
+                  <input
+                    id="magic-link-input"
+                    class="field-input link-input"
+                    type="url"
+                    inputmode="url"
+                    placeholder="Paste magic link di sini..."
+                  />
+
+
+                  <button
+                    id="btn-quick-paste"
+                    class="paste-btn"
+                    type="button"
+                  >
+                    PASTE
+                  </button>
+
+                </div>
+
+              </div>
+
+
+              <div class="action-row">
+
+                <button
+                  id="btn-back-step1"
+                  class="secondary-btn"
+                  type="button"
+                >
+                  ← GANTI EMAIL
+                </button>
+
+
+                <button
+                  id="btn-verify-link"
+                  class="primary-btn"
+                  type="button"
+                >
+
+                  <span id="btn-verify-text">
+                    VERIFY & ACTIVATE
+                  </span>
+
+                  <span
+                    id="btn-verify-arrow"
+                    class="primary-arrow"
+                  >
+                    →
+                  </span>
+
+                  <span
+                    id="btn-verify-loader"
+                    class="spinner hidden"
+                    aria-hidden="true"
+                  ></span>
+
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 STEP 3
+                 ============================================= -->
+
+            <div
+              id="step-3-block"
+              class="hidden"
+            >
+
+              <div class="success-block">
+
+                <div class="success-symbol">
+                  ✓
+                </div>
+
+
+                <h3 class="success-title">
+                  Premium activated.
+                </h3>
+
+
+                <p class="success-desc">
+                  Status lisensi Alight Motion Pro 1 Tahun
+                  telah terverifikasi dan aktif pada akun
+
+                  <span
+                    id="success-email-display"
+                    class="mono"
+                  ></span>.
+                </p>
+
+
+                <div class="certificate">
+
+                  <div class="certificate-row">
+
+                    <span>
+                      DURATION
+                    </span>
+
+                    <span>
+                      1 TAHUN PENUH
+                    </span>
+
+                  </div>
+
+
+                  <div class="certificate-row">
+
+                    <span>
+                      WATERMARK
+                    </span>
+
+                    <span>
+                      TERHAPUS / NONE
+                    </span>
+
+                  </div>
+
+
+                  <div class="certificate-row">
+
+                    <span>
+                      XML PRESET
+                    </span>
+
+                    <span>
+                      4K / 60 FPS
+                    </span>
+
+                  </div>
+
+
+                  <div class="certificate-row">
+
+                    <span>
+                      DISPATCHER
+                    </span>
+
+                    <span>
+                      CREDIT BY CYPAJO
+                    </span>
+
+                  </div>
+
+                </div>
+
+
+                <div class="action-row">
+
+                  <button
+                    id="btn-copy-certificate"
+                    class="secondary-btn"
+                    type="button"
+                  >
+                    SALIN BUKTI
+                  </button>
+
+
+                  <button
+                    id="btn-restart"
+                    class="primary-btn"
+                    type="button"
+                  >
+
+                    <span>
+                      AKTIVASI AKUN LAIN
+                    </span>
+
+                    <span class="primary-arrow">
+                      →
+                    </span>
+
+                  </button>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </main>
+
+
+        <!-- =================================================
+             DESKTOP DIAGNOSTICS
+             ================================================= -->
+
+        <aside class="diagnostics-desktop reveal">
+
+          <!-- Response -->
+
+          <div class="diag-panel">
+
+            <div class="diag-header">
+
+              <div class="diag-title">
+
+                <span class="diag-num">
+                  A/01
+                </span>
+
+                <span class="diag-name">
+                  RESPONSE.JSON
+                </span>
+
+              </div>
+
+
+              <span id="response-http-badge">
+                HTTP 200 OK
+              </span>
+
+            </div>
+
+
+            <div class="diag-code">
+
+              <pre id="json-code-box"></pre>
+
+            </div>
+
+          </div>
+
+
+          <!-- Terminal -->
+
+          <div class="diag-panel">
+
+            <div class="diag-header">
+
+              <div class="diag-title">
+
+                <span class="diag-num">
+                  A/02
+                </span>
+
+                <span class="diag-name">
+                  ACTIVITY LOG
+                </span>
+
+              </div>
+
+
+              <button
+                id="btn-trash-log"
+                class="trash-btn"
+                type="button"
+                aria-label="Bersihkan log"
+              >
+                ×
+              </button>
+
+            </div>
+
+
+            <div
+              id="terminal-feed"
+              class="terminal-feed"
+            >
+
+              <div>
+                <span class="text-zinc-600">
+                  [SYSTEM]
+                </span>
+                Free AM ready.
+              </div>
+
+              <div>
+                <span class="text-zinc-600">
+                  [INFO]
+                </span>
+                Masukkan email Alight Motion kamu untuk memulai.
+              </div>
+
+            </div>
+
+          </div>
+
+        </aside>
+
+      </div>
+
+
+      <!-- ===================================================
+           MOBILE DIAGNOSTICS
+           =================================================== -->
+
+      <div class="diagnostics-mobile reveal">
+
+        <details class="mobile-diagnostics">
+
+          <summary>
+
+            <div class="diag-mobile-main">
+
+              <div class="diag-mobile-title">
+                SYSTEM DIAGNOSTICS
+              </div>
+
+              <div
+                id="mobile-status-line"
+                class="diag-mobile-sub"
+              >
+                HTTP 200 · DISPATCHER READY
+              </div>
+
+            </div>
+
+
+            <span class="diag-expand">
+              +
+            </span>
+
+          </summary>
+
+
+          <div class="mobile-diagnostics-content">
+
+            <div class="mobile-diag-section">
+
+              <div class="mobile-diag-label">
+
+                <span>RESPONSE.JSON</span>
+
+                <span id="mobile-http-badge">
+                  HTTP 200
+                </span>
+
+              </div>
+
+
+              <pre id="mobile-json-code-box"></pre>
+
+            </div>
+
+
+            <div class="mobile-diag-section">
+
+              <div class="mobile-diag-label">
+
+                <span>ACTIVITY LOG</span>
+
+                <button
+                  id="btn-trash-mobile"
+                  type="button"
+                  style="
+                    border:0;
+                    padding:0;
+                    color:#676e68;
+                    background:none;
+                    font:inherit;
+                    letter-spacing:inherit;
+                  "
+                >
+                  CLEAR
+                </button>
+
+              </div>
+
+
+              <div id="mobile-terminal-feed">
+
+                <div>
+                  <span class="text-zinc-600">
+                    [SYSTEM]
+                  </span>
+                  Free AM ready.
+                </div>
+
+                <div>
+                  <span class="text-zinc-600">
+                    [INFO]
+                  </span>
+                  Masukkan email Alight Motion kamu untuk memulai.
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </details>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
+
+    <footer class="footer">
+
+      <div>
+
+        <div class="footer-title">
+          Alight Motion Pro Dispatcher
+        </div>
+
+        <div class="footer-sub">
+          NODE.JS / API / AM.JS
+        </div>
+
+        <div class="footer-socials">
+
+          <a
+            href="https://instagram.com/rzaatlfni"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-link"
+            aria-label="Instagram rzaatlfni"
+          >
+            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+            </svg>
+            <span>rzaatlfni</span>
+          </a>
+
+          <a
+            href="https://www.tiktok.com/@usernameashu1"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-link"
+            aria-label="TikTok usernameashu1"
+          >
+            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.11V9.32a6.34 6.34 0 0 0-.85-.06A6.33 6.33 0 0 0 3.15 15.6a6.34 6.34 0 0 0 10.83 4.47V10.8a8.28 8.28 0 0 0 5.61 2.2V9.55a4.84 4.84 0 0 1-3.77-2.86z"/>
+            </svg>
+            <span>usernameashu1</span>
+          </a>
+
+          <a
+            href="https://t.me/Rom4nt1ca"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="social-link"
+            aria-label="Telegram Rom4nt1ca"
+          >
+            <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+            </svg>
+            <span>Rom4nt1ca</span>
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <div class="footer-right">
+        DESIGNED FOR CREATORS<br />
+        CREDIT BY CYPAJO
+      </div>
+
+    </footer>
+
+  </div>
+
+
+  <!-- =======================================================
+       TOAST
+       ======================================================= -->
+
+  <div
+    id="toast-pill"
+    class="opacity-0"
+    aria-live="polite"
+  >
+
+    <div class="toast-inner">
+
+      <span id="toast-indicator"></span>
+
+      <span id="toast-text">
+        Pemberitahuan
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- =======================================================
+       LIGHTWEIGHT CANVAS MOTION ENGINE
+       ======================================================= -->
+
+  <script>
+    (() => {
+
+      const canvas =
+        document.getElementById("motion-canvas");
+
+      const stage =
+        canvas.parentElement;
+
+      const ctx =
+        canvas.getContext("2d", {
+          alpha: true
+        });
+
+      const logoImg = new Image();
+      logoImg.src = "/favicon.jpeg";
+      let logoLoaded = false;
+      logoImg.onload = () => {
+        logoLoaded = true;
+        draw(true);
+      };
+
+      const reduceMotion =
+        window.matchMedia &&
+        window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+
+      let width = 1;
+      let height = 1;
+      let dpr = 1;
+
+      let mx = 0;
+      let my = 0;
+
+      let smoothX = 0;
+      let smoothY = 0;
+
+      let angle = 0;
+      let raf = 0;
+
+      let visible =
+        !document.hidden;
+
+      let lastFrame = 0;
+
+      /*
+       * Mobile intentionally capped lower.
+       * GPU cost stays small.
+       */
+      function targetFPS() {
+        return window.innerWidth < 700
+          ? 30
+          : 45;
+      }
+
+
+      function resize() {
+
+        const rect =
+          stage.getBoundingClientRect();
+
+        width =
+          Math.max(
+            1,
+            Math.floor(rect.width)
+          );
+
+        height =
+          Math.max(
+            1,
+            Math.floor(rect.height)
+          );
+
+        dpr =
+          Math.min(
+            window.devicePixelRatio || 1,
+            1.5
+          );
+
+        canvas.width =
+          Math.floor(width * dpr);
+
+        canvas.height =
+          Math.floor(height * dpr);
+
+        canvas.style.width =
+          width + "px";
+
+        canvas.style.height =
+          height + "px";
+
+        ctx.setTransform(
+          dpr,
+          0,
+          0,
+          dpr,
+          0,
+          0
+        );
+
+        draw(true);
+      }
+
+
+      function line(
+        x1,
+        y1,
+        x2,
+        y2,
+        alpha = .2
+      ) {
+
+        ctx.strokeStyle =
+          `rgba(215,230,220,${alpha})`;
+
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+
+        ctx.stroke();
+      }
+
+
+      function dot(
+        x,
+        y,
+        radius,
+        alpha = .8,
+        accent = false
+      ) {
+
+        ctx.fillStyle =
+          accent
+            ? `rgba(71,231,173,${alpha})`
+            : `rgba(225,233,228,${alpha})`;
+
+        ctx.beginPath();
+
+        ctx.arc(
+          x,
+          y,
+          radius,
+          0,
+          Math.PI * 2
+        );
+
+        ctx.fill();
+      }
+
+
+      function arc(
+        cx,
+        cy,
+        radius,
+        start,
+        end,
+        alpha,
+        accent = false,
+        widthValue = 1
+      ) {
+
+        ctx.strokeStyle =
+          accent
+            ? `rgba(71,231,173,${alpha})`
+            : `rgba(225,233,228,${alpha})`;
+
+        ctx.lineWidth =
+          widthValue;
+
+        ctx.beginPath();
+
+        ctx.arc(
+          cx,
+          cy,
+          radius,
+          start,
+          end
+        );
+
+        ctx.stroke();
+      }
+
+
+      function label(
+        text,
+        x,
+        y,
+        alpha = .35
+      ) {
+
+        ctx.fillStyle =
+          `rgba(215,225,218,${alpha})`;
+
+        ctx.font =
+          '7px monospace';
+
+        ctx.fillText(
+          text,
+          x,
+          y
+        );
+      }
+
+
+      function draw(staticMode = false) {
+
+        ctx.clearRect(
+          0,
+          0,
+          width,
+          height
+        );
+
+
+        smoothX +=
+          (mx - smoothX) * .045;
+
+        smoothY +=
+          (my - smoothY) * .045;
+
+
+        if (!staticMode) {
+          angle +=
+            window.innerWidth < 700
+              ? .0025
+              : .0032;
+        }
+
+
+        const cx =
+          width * .50 +
+          smoothX * 14;
+
+        const cy =
+          height * .46 +
+          smoothY * 11;
+
+
+        const base =
+          Math.min(
+            width,
+            height
+          ) * .28;
+
+
+        /*
+         * Central engineering ring
+         */
+
+        arc(
+          cx,
+          cy,
+          base * 1.24,
+          0,
+          Math.PI * 2,
+          .10
+        );
+
+        arc(
+          cx,
+          cy,
+          base,
+          angle,
+          angle + Math.PI * 1.38,
+          .72,
+          true,
+          1.4
+        );
+
+        arc(
+          cx,
+          cy,
+          base * .76,
+          -angle * 1.27,
+          -angle * 1.27 + Math.PI * 1.02,
+          .36,
+          false
+        );
+
+        arc(
+          cx,
+          cy,
+          base * .48,
+          angle * 1.7,
+          angle * 1.7 + Math.PI * .78,
+          .75,
+          true,
+          2
+        );
+
+
+        /*
+         * Four radial beams
+         */
+
+        const beams = 4;
+
+        for (
+          let i = 0;
+          i < beams;
+          i++
+        ) {
+
+          const a =
+            angle * .33 +
+            i * Math.PI / 2;
+
+          const inner =
+            base * .34;
+
+          const outer =
+            base * 1.18;
+
+          const x1 =
+            cx +
+            Math.cos(a) *
+            inner;
+
+          const y1 =
+            cy +
+            Math.sin(a) *
+            inner;
+
+          const x2 =
+            cx +
+            Math.cos(a) *
+            outer;
+
+          const y2 =
+            cy +
+            Math.sin(a) *
+            outer;
+
+          line(
+            x1,
+            y1,
+            x2,
+            y2,
+            .095
+          );
+
+        }
+
+
+        /*
+         * Orbit nodes — only 12
+         */
+
+        const nodes = 12;
+
+        for (
+          let i = 0;
+          i < nodes;
+          i++
+        ) {
+
+          const a =
+            angle * .55 +
+            i / nodes *
+            Math.PI * 2;
+
+          const wave =
+            Math.sin(
+              a * 3 + angle
+            ) * base * .075;
+
+          const r =
+            base * 1.24 + wave;
+
+          const x =
+            cx +
+            Math.cos(a) * r;
+
+          const y =
+            cy +
+            Math.sin(a) *
+            r * .72;
+
+          dot(
+            x,
+            y,
+            i % 3 === 0
+              ? 2.1
+              : 1.15,
+            i % 3 === 0
+              ? .72
+              : .28,
+            i % 3 === 0
+          );
+
+        }
+
+
+        /*
+         * Diamond core framing
+         */
+
+        ctx.save();
+
+        ctx.translate(
+          cx,
+          cy
+        );
+
+        ctx.rotate(
+          angle * .43
+        );
+
+        ctx.strokeStyle =
+          "rgba(71,231,173,.72)";
+
+        ctx.lineWidth =
+          1;
+
+        ctx.strokeRect(
+          -28,
+          -28,
+          56,
+          56
+        );
+
+        ctx.strokeStyle =
+          "rgba(230,238,233,.12)";
+
+        ctx.strokeRect(
+          -38,
+          -38,
+          76,
+          76
+        );
+
+        ctx.restore();
+
+
+        /*
+         * Center Favicon Orbit Core
+         */
+
+        if (logoLoaded) {
+          const logoSize = 46;
+
+          ctx.save();
+
+          // Subtle green glow
+          ctx.shadowColor = "rgba(71,231,173,.55)";
+          ctx.shadowBlur = 16;
+
+          // Circular clip
+          ctx.beginPath();
+          ctx.arc(cx, cy, logoSize / 2, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.save();
+          ctx.clip();
+          ctx.drawImage(
+            logoImg,
+            cx - logoSize / 2,
+            cy - logoSize / 2,
+            logoSize,
+            logoSize
+          );
+          ctx.restore();
+
+          // High-tech subtle accent border
+          ctx.strokeStyle = "rgba(71,231,173,.9)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(cx, cy, logoSize / 2, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Outer fine halo ring
+          ctx.strokeStyle = "rgba(255,255,255,.2)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(cx, cy, (logoSize / 2) + 3.5, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.restore();
+        } else {
+          dot(
+            cx,
+            cy,
+            3,
+            .95,
+            true
+          );
+        }
+
+
+        /*
+         * Bézier trajectory
+         */
+
+        ctx.strokeStyle =
+          "rgba(71,231,173,.15)";
+
+        ctx.lineWidth =
+          1;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+          width * .10,
+          height * .70
+        );
+
+        ctx.bezierCurveTo(
+          width * .31,
+          height * .24,
+          width * .70,
+          height * .82,
+          width * .92,
+          height * .25
+        );
+
+        ctx.stroke();
+
+
+        /*
+         * Control points
+         */
+
+        const controls = [
+          [width * .10, height * .70],
+          [width * .31, height * .24],
+          [width * .70, height * .82],
+          [width * .92, height * .25]
+        ];
+
+        controls.forEach(
+          (point, index) => {
+
+            dot(
+              point[0],
+              point[1],
+              index === 1 ||
+              index === 2
+                ? 2
+                : 1.4,
+              .42,
+              index % 2 === 0
+            );
+
+          }
+        );
+
+
+        /*
+         * Sparse coordinate markers
+         */
+
+        const mark =
+          Math.min(width, height) *
+          .055;
+
+        line(
+          24,
+          height * .38,
+          24 + mark,
+          height * .38,
+          .16
+        );
+
+        line(
+          width - 24 - mark,
+          height * .65,
+          width - 24,
+          height * .65,
+          .16
+        );
+
+        label(
+          "01 / VECTOR",
+          24,
+          height * .38 - 9
+        );
+
+        label(
+          "KEYFRAME",
+          width - 76,
+          height * .65 - 9
+        );
+
+      }
+
+
+      function frame(time) {
+
+        if (
+          !visible ||
+          reduceMotion
+        ) {
+          return;
+        }
+
+        const fps =
+          targetFPS();
+
+        const interval =
+          1000 / fps;
+
+
+        if (
+          time - lastFrame >=
+          interval
+        ) {
+
+          lastFrame =
+            time;
+
+          draw();
+
+        }
+
+        raf =
+          requestAnimationFrame(frame);
+
+      }
+
+
+      function pointerMove(e) {
+
+        const rect =
+          stage.getBoundingClientRect();
+
+        mx =
+          (
+            e.clientX -
+            rect.left
+          ) /
+          rect.width -
+          .5;
+
+        my =
+          (
+            e.clientY -
+            rect.top
+          ) /
+          rect.height -
+          .5;
+
+      }
+
+
+      stage.addEventListener(
+        "pointermove",
+        pointerMove,
+        {
+          passive: true
+        }
+      );
+
+
+      stage.addEventListener(
+        "pointerleave",
+        () => {
+          mx = 0;
+          my = 0;
+        },
+        {
+          passive: true
+        }
+      );
+
+
+      document.addEventListener(
+        "visibilitychange",
+        () => {
+
+          visible =
+            !document.hidden;
+
+          if (visible) {
+
+            cancelAnimationFrame(
+              raf
+            );
+
+            lastFrame =
+              performance.now();
+
+            raf =
+              requestAnimationFrame(
+                frame
+              );
+
+          } else {
+
+            cancelAnimationFrame(
+              raf
+            );
+
+          }
+
+        }
+      );
+
+
+      window.addEventListener(
+        "resize",
+        resize,
+        {
+          passive: true
+        }
+      );
+
+
+      resize();
+
+
+      if (reduceMotion) {
+
+        draw(true);
+
+      } else {
+
+        raf =
+          requestAnimationFrame(
+            frame
+          );
+
+      }
+
+    })();
+  </script>
+
+
+  <!-- =======================================================
+       REVEAL ENGINE
+       ======================================================= -->
+
+  <script>
+    (() => {
+
+      const reduceMotion =
+        window.matchMedia &&
+        window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+
+
+      const items =
+        document.querySelectorAll(
+          ".reveal"
+        );
+
+
+      if (
+        reduceMotion ||
+        !("IntersectionObserver" in window)
+      ) {
+
+        items.forEach(
+          element =>
+            element.classList.add(
+              "visible"
+            )
+        );
+
+        return;
+      }
+
+
+      const observer =
+        new IntersectionObserver(
+          entries => {
+
+            entries.forEach(
+              entry => {
+
+                if (
+                  entry.isIntersecting
+                ) {
+
+                  entry.target
+                    .classList
+                    .add(
+                      "visible"
+                    );
+
+                  observer.unobserve(
+                    entry.target
+                  );
+
+                }
+
+              }
+            );
+
+          },
+          {
+            threshold: .12,
+            rootMargin:
+              "0px 0px -30px 0px"
+          }
+        );
+
+
+      items.forEach(
+        item =>
+          observer.observe(item)
+      );
+
+    })();
+  </script>
+
+
+  <!-- =======================================================
+       APPLICATION
+       ======================================================= -->
+
+  <script>
+    /* =========================================================
+       APP STATE
+       ========================================================= */
+
+    const appState = {
+
+      step: 1,
+
+      email: "",
+
+      link: "",
+
+      isSubmitting: false,
+
+      lastResponse: {
+        status: "ready",
+        author: "cypajo",
+        endpoint: "/api/am.js"
+      }
+
+    };
+
+
+    /* =========================================================
+       DOM
+       ========================================================= */
+
+    const step1Block =
+      document.getElementById(
+        "step-1-block"
+      );
+
+    const step2Block =
+      document.getElementById(
+        "step-2-block"
+      );
+
+    const step3Block =
+      document.getElementById(
+        "step-3-block"
+      );
+
+    const stepLabelNum =
+      document.getElementById(
+        "step-label-num"
+      );
+
+    const stepLabelName =
+      document.getElementById(
+        "step-label-name"
+      );
+
+    const progressBarFill =
+      document.getElementById(
+        "progress-bar-fill"
+      );
+
+
+    const userEmailInput =
+      document.getElementById(
+        "user-email"
+      );
+
+    const btnSendLink =
+      document.getElementById(
+        "btn-send-link"
+      );
+
+    const btnSendText =
+      document.getElementById(
+        "btn-send-text"
+      );
+
+    const btnSendLoader =
+      document.getElementById(
+        "btn-send-loader"
+      );
+
+    const btnSendArrow =
+      document.getElementById(
+        "btn-send-arrow"
+      );
+
+
+    const magicLinkInput =
+      document.getElementById(
+        "magic-link-input"
+      );
+
+    const btnQuickPaste =
+      document.getElementById(
+        "btn-quick-paste"
+      );
+
+    const btnBackStep1 =
+      document.getElementById(
+        "btn-back-step1"
+      );
+
+    const btnVerifyLink =
+      document.getElementById(
+        "btn-verify-link"
+      );
+
+    const btnVerifyText =
+      document.getElementById(
+        "btn-verify-text"
+      );
+
+    const btnVerifyLoader =
+      document.getElementById(
+        "btn-verify-loader"
+      );
+
+    const btnVerifyArrow =
+      document.getElementById(
+        "btn-verify-arrow"
+      );
+
+
+    const successEmailDisplay =
+      document.getElementById(
+        "success-email-display"
+      );
+
+    const btnCopyCertificate =
+      document.getElementById(
+        "btn-copy-certificate"
+      );
+
+    const btnRestart =
+      document.getElementById(
+        "btn-restart"
+      );
+
+
+    const jsonCodeBox =
+      document.getElementById(
+        "json-code-box"
+      );
+
+    const mobileJsonCodeBox =
+      document.getElementById(
+        "mobile-json-code-box"
+      );
+
+    const responseHttpBadge =
+      document.getElementById(
+        "response-http-badge"
+      );
+
+    const mobileHttpBadge =
+      document.getElementById(
+        "mobile-http-badge"
+      );
+
+    const mobileStatusLine =
+      document.getElementById(
+        "mobile-status-line"
+      );
+
+
+    const terminalFeed =
+      document.getElementById(
+        "terminal-feed"
+      );
+
+    const mobileTerminalFeed =
+      document.getElementById(
+        "mobile-terminal-feed"
+      );
+
+    const btnTrashLog =
+      document.getElementById(
+        "btn-trash-log"
+      );
+
+    const btnTrashMobile =
+      document.getElementById(
+        "btn-trash-mobile"
+      );
+
+
+    const toastPill =
+      document.getElementById(
+        "toast-pill"
+      );
+
+    const toastText =
+      document.getElementById(
+        "toast-text"
+      );
+
+    const toastIndicator =
+      document.getElementById(
+        "toast-indicator"
+      );
+
+
+    /* =========================================================
+       ESCAPE
+       ========================================================= */
+
+    function escapeHtml(value) {
+
+      return String(value)
+        .replaceAll(
+          "&",
+          "&amp;"
+        )
+        .replaceAll(
+          "<",
+          "&lt;"
+        )
+        .replaceAll(
+          ">",
+          "&gt;"
+        )
+        .replaceAll(
+          '"',
+          "&quot;"
+        )
+        .replaceAll(
+          "'",
+          "&#039;"
+        );
+
+    }
+
+
+    /* =========================================================
+       JSON HIGHLIGHTER
+       ========================================================= */
+
+    function highlightJson(
+      data
+    ) {
+
+      const str =
+        JSON.stringify(
+          data,
+          null,
+          2
+        );
+
+      const safe =
+        escapeHtml(str);
+
+
+      return safe.replace(
+        /(&quot;(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\])*?&quot;)(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,
+
+        match => {
+
+          let cls =
+            "cs-num";
+
+
+          if (
+            match.startsWith(
+              "&quot;"
+            )
+          ) {
+
+            cls =
+              match.endsWith(
+                ":"
+              )
+                ? "cs-key"
+                : "cs-str";
+
+          } else if (
+            match === "true" ||
+            match === "false"
+          ) {
+
+            cls =
+              "cs-bool";
+
+          } else if (
+            match === "null"
+          ) {
+
+            cls =
+              "cs-punct";
+
+          }
+
+
+          return (
+            `<span class="${cls}">` +
+            match +
+            `</span>`
+          );
+
+        }
+      );
+
+    }
+
+
+    function renderCodeSnap(
+      data,
+      statusCode = 200
+    ) {
+
+      appState.lastResponse =
+        data;
+
+
+      const highlighted =
+        highlightJson(data);
+
+
+      jsonCodeBox.innerHTML =
+        highlighted;
+
+      mobileJsonCodeBox.innerHTML =
+        highlighted;
+
+
+      const ok =
+        statusCode >= 200 &&
+        statusCode < 300;
+
+
+      responseHttpBadge.textContent =
+        `HTTP ${statusCode} ${
+          ok ? "OK" : "ERROR"
+        }`;
+
+      responseHttpBadge.style.color =
+        ok
+          ? "var(--accent)"
+          : "var(--danger)";
+
+
+      mobileHttpBadge.textContent =
+        `HTTP ${statusCode}`;
+
+      mobileHttpBadge.style.color =
+        ok
+          ? "var(--accent)"
+          : "var(--danger)";
+
+
+      mobileStatusLine.textContent =
+        `HTTP ${statusCode} · ${
+          ok
+            ? "DISPATCHER READY"
+            : "REQUEST ERROR"
+        }`;
+
+    }
+
+
+    renderCodeSnap(
+      appState.lastResponse,
+      200
+    );
+
+
+    /* =========================================================
+       LOG
+       ========================================================= */
+
+    function getTimeString() {
+
+      const now =
+        new Date();
+
+      return [
+        now.getHours(),
+        now.getMinutes(),
+        now.getSeconds()
+      ]
+        .map(
+          part =>
+            String(part)
+              .padStart(
+                2,
+                "0"
+              )
+        )
+        .join(".");
+
+    }
+
+
+    function tagClass(
+      status
+    ) {
+
+      switch (status) {
+
+        case "success":
+          return (
+            "text-emerald-400 " +
+            "font-bold"
+          );
+
+        case "warn":
+          return (
+            "text-amber-400 " +
+            "font-semibold"
+          );
+
+        case "error":
+          return (
+            "text-rose-400 " +
+            "font-bold"
+          );
+
+        default:
+          return "text-sky-400";
+
+      }
+
+    }
+
+
+    function buildLogElement(
+      tag,
+      message,
+      status
+    ) {
+
+      const entry =
+        document.createElement(
+          "div"
+        );
+
+      const time =
+        getTimeString();
+
+
+      entry.innerHTML =
+        `<span class="text-zinc-600">` +
+        `[${time}]` +
+        `</span> ` +
+
+        `<span class="${tagClass(status)}">` +
+        `${escapeHtml(tag)}` +
+        `</span> — ` +
+
+        `<span class="text-zinc-300">` +
+        `${escapeHtml(message)}` +
+        `</span>`;
+
+
+      return entry;
+
+    }
+
+
+    function pushLog(
+      tag,
+      message,
+      status = "info"
+    ) {
+
+      const desktopEntry =
+        buildLogElement(
+          tag,
+          message,
+          status
+        );
+
+      const mobileEntry =
+        buildLogElement(
+          tag,
+          message,
+          status
+        );
+
+
+      terminalFeed.appendChild(
+        desktopEntry
+      );
+
+      mobileTerminalFeed.appendChild(
+        mobileEntry
+      );
+
+
+      terminalFeed.scrollTop =
+        terminalFeed.scrollHeight;
+
+      mobileTerminalFeed.scrollTop =
+        mobileTerminalFeed.scrollHeight;
+
+    }
+
+
+    function clearLogs() {
+
+      const markup =
+        `<div>` +
+        `<span class="text-zinc-600">` +
+        `[SYSTEM]` +
+        `</span> ` +
+        `Log aktivitas dibersihkan.` +
+        `</div>`;
+
+
+      terminalFeed.innerHTML =
+        markup;
+
+      mobileTerminalFeed.innerHTML =
+        markup;
+
+
+      triggerToast(
+        "Log dibersihkan"
+      );
+
+    }
+
+
+    btnTrashLog.addEventListener(
+      "click",
+      clearLogs
+    );
+
+    btnTrashMobile.addEventListener(
+      "click",
+      clearLogs
+    );
+
+
+    /* =========================================================
+       TOAST
+       ========================================================= */
+
+    let toastTimer =
+      null;
+
+
+    function triggerToast(
+      text,
+      isError = false
+    ) {
+
+      toastText.textContent =
+        text;
+
+
+      toastIndicator.style.background =
+        isError
+          ? "var(--danger)"
+          : "#12b97c";
+
+
+      toastPill.classList.remove(
+        "opacity-0"
+      );
+
+      toastPill.classList.add(
+        "opacity-100"
+      );
+
+
+      clearTimeout(
+        toastTimer
+      );
+
+
+      toastTimer =
+        setTimeout(
+          () => {
+
+            toastPill.classList.remove(
+              "opacity-100"
+            );
+
+            toastPill.classList.add(
+              "opacity-0"
+            );
+
+          },
+          2600
+        );
+
+    }
+
+
+    /* =========================================================
+       API
+       ========================================================= */
+
+    async function executeApiRequest(
+      payload
+    ) {
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/am.js",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+
+                "Accept":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify(
+                  payload
+                )
+            }
+          );
+
+
+        let data;
+
+
+        try {
+
+          data =
+            await response.json();
+
+        } catch {
+
+          data = {
+            ok: false,
+            message:
+              "Server tidak mengembalikan JSON valid."
+          };
+
+        }
+
+
+        return {
+          ok: response.ok,
+          status: response.status,
+          data
+        };
+
+      } catch (error) {
+
+        /*
+         * Real error reporting - no dummy fallback
+         */
+        return {
+          ok: false,
+          status: 500,
+          data: {
+            ok: false,
+            message: error.message || "Gagal terhubung ke server dispatcher."
+          }
+        };
+
+      }
+
+    }
+
+
+    /* =========================================================
+       STEP STATE
+       ========================================================= */
+
+    function setStep(
+      stepNumber
+    ) {
+
+      appState.step =
+        stepNumber;
+
+
+      step1Block.classList.add(
+        "hidden"
+      );
+
+      step2Block.classList.add(
+        "hidden"
+      );
+
+      step3Block.classList.add(
+        "hidden"
+      );
+
+
+      if (
+        stepNumber === 1
+      ) {
+
+        step1Block.classList.remove(
+          "hidden"
+        );
+
+        stepLabelNum.textContent =
+          "STEP 1";
+
+        stepLabelName.textContent =
+          "EMAIL ADDRESS";
+
+        progressBarFill.style.width =
+          "50%";
+
+      }
+
+
+      if (
+        stepNumber === 2
+      ) {
+
+        step2Block.classList.remove(
+          "hidden"
+        );
+
+        stepLabelNum.textContent =
+          "STEP 2";
+
+        stepLabelName.textContent =
+          "VERIFICATION LINK";
+
+        progressBarFill.style.width =
+          "100%";
+
+      }
+
+
+      if (
+        stepNumber === 3
+      ) {
+
+        step3Block.classList.remove(
+          "hidden"
+        );
+
+        stepLabelNum.textContent =
+          "COMPLETE";
+
+        stepLabelName.textContent =
+          "PREMIUM ACTIVE";
+
+        progressBarFill.style.width =
+          "100%";
+
+        successEmailDisplay.textContent =
+          appState.email;
+
+      }
+
+    }
+
+
+    /* =========================================================
+       BUTTON LOADING
+       ========================================================= */
+
+    function setSendLoading(
+      loading
+    ) {
+
+      btnSendLink.disabled =
+        loading;
+
+      btnSendLoader.classList.toggle(
+        "hidden",
+        !loading
+      );
+
+      btnSendArrow.classList.toggle(
+        "hidden",
+        loading
+      );
+
+      btnSendText.textContent =
+        loading
+          ? "MENGIRIM..."
+          : "KIRIM MAGIC LINK";
+
+    }
+
+
+    function setVerifyLoading(
+      loading
+    ) {
+
+      btnVerifyLink.disabled =
+        loading;
+
+      btnVerifyLoader.classList.toggle(
+        "hidden",
+        !loading
+      );
+
+      btnVerifyArrow.classList.toggle(
+        "hidden",
+        loading
+      );
+
+      btnVerifyText.textContent =
+        loading
+          ? "MEMVERIFIKASI..."
+          : "VERIFY & ACTIVATE";
+
+    }
+
+
+    /* =========================================================
+       STEP 1 / SEND
+       ========================================================= */
+
+    btnSendLink.addEventListener(
+      "click",
+      async () => {
+
+        const email =
+          userEmailInput.value
+            .trim();
+
+
+        const emailRegex =
+          /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+        if (!email) {
+
+          triggerToast(
+            "Email tidak boleh kosong",
+            true
+          );
+
+          userEmailInput.focus();
+
+          return;
+
+        }
+
+
+        if (
+          !emailRegex.test(
+            email
+          )
+        ) {
+
+          triggerToast(
+            "Format email tidak valid",
+            true
+          );
+
+          userEmailInput.focus();
+
+          return;
+
+        }
+
+
+        appState.email =
+          email;
+
+
+        setSendLoading(
+          true
+        );
+
+
+        pushLog(
+          "SEND",
+          `mengirim ke ${email}...`,
+          "warn"
+        );
+
+
+        try {
+
+          const result =
+            await executeApiRequest({
+              action: "send",
+              email
+            });
+
+
+          renderCodeSnap(
+            result.data,
+            result.status
+          );
+
+
+          if (
+            result.ok &&
+            result.data &&
+            result.data.ok
+          ) {
+
+            pushLog(
+              "SUCCESS",
+              `Magic link berhasil dikirim ke ${email}`,
+              "success"
+            );
+
+
+            triggerToast(
+              "Magic link terkirim. Cek email."
+            );
+
+
+            setTimeout(
+              () => {
+
+                setStep(2);
+
+                if (
+                  window.innerWidth <=
+                  920
+                ) {
+
+                  document
+                    .getElementById(
+                      "activation"
+                    )
+                    .scrollIntoView({
+                      behavior:
+                        "smooth",
+                      block:
+                        "start"
+                    });
+
+                }
+
+              },
+              300
+            );
+
+          } else {
+
+            const message =
+              result.data?.message ||
+              result.data?.error ||
+              "Gagal mengirim magic link";
+
+
+            pushLog(
+              "ERROR",
+              message,
+              "error"
+            );
+
+
+            triggerToast(
+              message,
+              true
+            );
+
+          }
+
+        } catch (error) {
+
+          pushLog(
+            "FATAL",
+            error.message,
+            "error"
+          );
+
+
+          triggerToast(
+            "Gagal terhubung ke server",
+            true
+          );
+
+        } finally {
+
+          setSendLoading(
+            false
+          );
+
+        }
+
+      }
+    );
+
+
+    /* =========================================================
+       PASTE
+       ========================================================= */
+
+    btnQuickPaste.addEventListener(
+      "click",
+      async () => {
+
+        /*
+         * Clipboard API may not work
+         * outside HTTPS / browser permissions.
+         */
+
+        try {
+
+          if (
+            navigator.clipboard &&
+            navigator.clipboard.readText
+          ) {
+
+            const text =
+              await navigator.clipboard.readText();
+
+
+            if (text) {
+
+              magicLinkInput.value =
+                text.trim();
+
+
+              triggerToast(
+                "Tautan berhasil ditempel"
+              );
+
+
+              pushLog(
+                "CLIPBOARD",
+                "Magic link berhasil ditempel."
+              );
+
+
+              return;
+
+            }
+
+          }
+
+        } catch (_) {}
+
+
+        magicLinkInput.focus();
+
+
+        triggerToast(
+          "Tahan kolom lalu pilih Tempel"
+        );
+
+    });
+
+
+    /* =========================================================
+       BACK
+       ========================================================= */
+
+    btnBackStep1.addEventListener(
+      "click",
+      () => {
+
+        setStep(1);
+
+        setTimeout(
+          () =>
+            userEmailInput.focus(),
+          50
+        );
+
+      }
+    );
+
+
+    /* =========================================================
+       VERIFY
+       ========================================================= */
+
+    btnVerifyLink.addEventListener(
+      "click",
+      async () => {
+
+        const link =
+          magicLinkInput.value
+            .trim();
+
+
+        if (!link) {
+
+          triggerToast(
+            "Tempel verification link dulu",
+            true
+          );
+
+          magicLinkInput.focus();
+
+          return;
+
+        }
+
+
+        appState.link =
+          link;
+
+
+        setVerifyLoading(
+          true
+        );
+
+
+        pushLog(
+          "VERIFY",
+          "validasi token magic link...",
+          "warn"
+        );
+
+
+        try {
+
+          const result =
+            await executeApiRequest({
+
+              action:
+                "verify",
+
+              email:
+                appState.email,
+
+              link
+
+            });
+
+
+          renderCodeSnap(
+            result.data,
+            result.status
+          );
+
+
+          if (
+            result.ok &&
+            result.data &&
+            result.data.ok
+          ) {
+
+            pushLog(
+              "ACTIVATED",
+              `Akun ${appState.email} menjadi Alight Motion Pro.`,
+              "success"
+            );
+
+
+            triggerToast(
+              "Aktivasi berhasil!"
+            );
+
+
+            setTimeout(
+              () =>
+                setStep(3),
+              300
+            );
+
+          } else {
+
+            const message =
+              result.data?.message ||
+              result.data?.error ||
+              "Tautan tidak valid atau kedaluwarsa";
+
+
+            pushLog(
+              "REJECTED",
+              message,
+              "error"
+            );
+
+
+            triggerToast(
+              message,
+              true
+            );
+
+          }
+
+        } catch (error) {
+
+          pushLog(
+            "FATAL",
+            error.message,
+            "error"
+          );
+
+
+          triggerToast(
+            "Gagal memverifikasi",
+            true
+          );
+
+        } finally {
+
+          setVerifyLoading(
+            false
+          );
+
+        }
+
+      }
+    );
+
+
+    /* =========================================================
+       RESET
+       ========================================================= */
+
+    function resetWorkflow() {
+
+      appState.email =
+        "";
+
+      appState.link =
+        "";
+
+
+      userEmailInput.value =
+        "";
+
+      magicLinkInput.value =
+        "";
+
+
+      setStep(1);
+
+
+      pushLog(
+        "SYSTEM",
+        "Alur aktivasi disetel ulang.",
+        "warn"
+      );
+
+
+      renderCodeSnap(
+        {
+          status:
+            "ready",
+
+          author:
+            "cypajo",
+
+          endpoint:
+            "/api/am.js"
+        },
+        200
+      );
+
+
+      triggerToast(
+        "Formulir direset"
+      );
+
+    }
+
+
+    btnRestart.addEventListener(
+      "click",
+      resetWorkflow
+    );
+
+
+    /* =========================================================
+       CERTIFICATE COPY
+       ========================================================= */
+
+    btnCopyCertificate.addEventListener(
+      "click",
+      async () => {
+
+        const certificate =
+          [
+            "=== ALIGHT MOTION PRO LICENSE CERTIFICATE ===",
+            `Akun: ${appState.email}`,
+            "Paket: Pro / 1 Tahun",
+            "Fitur: No Watermark + Support XML 4K",
+            "Dispatcher Engine: Credit by cypajo",
+            `Diaktivasi pada: ${
+              new Date()
+                .toLocaleString(
+                  "id-ID"
+                )
+            }`
+          ].join("\n");
+
+
+        try {
+
+          if (
+            navigator.clipboard &&
+            navigator.clipboard.writeText
+          ) {
+
+            await navigator.clipboard
+              .writeText(
+                certificate
+              );
+
+          } else {
+
+            const area =
+              document.createElement(
+                "textarea"
+              );
+
+            area.value =
+              certificate;
+
+            area.style.position =
+              "fixed";
+
+            area.style.opacity =
+              "0";
+
+            document.body.appendChild(
+              area
+            );
+
+            area.select();
+
+            document.execCommand(
+              "copy"
+            );
+
+            area.remove();
+
+          }
+
+
+          triggerToast(
+            "Bukti lisensi disalin"
+          );
+
+        } catch {
+
+          triggerToast(
+            "Gagal menyalin otomatis",
+            true
+          );
+
+        }
+
+      }
+    );
+
+
+    /* =========================================================
+       KEYBOARD
+       ========================================================= */
+
+    userEmailInput.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key ===
+          "Enter"
+        ) {
+
+          btnSendLink.click();
+
+        }
+
+      }
+    );
+
+
+    magicLinkInput.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key ===
+          "Enter"
+        ) {
+
+          btnVerifyLink.click();
+
+        }
+
+      }
+    );
+
+
+    /* =========================================================
+       INITIAL STATE
+       ========================================================= */
+
+    setStep(1);
+  </script>
+
+</body>
+</html>
